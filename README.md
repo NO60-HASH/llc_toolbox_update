@@ -1,5 +1,3 @@
-以下是一个适用于你的 `update_tool` 程序的 GitHub `README.md` 文件内容，你可以根据需要进一步修改或补充：
-
 ---
 
 # 🛠️ update_tool
