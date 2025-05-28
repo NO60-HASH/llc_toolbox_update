@@ -1,6 +1,6 @@
 ---
 
-# 🛠️ update_tool
+# 🛠️ llc_toolbox_update
 
 `update_tool` 是一个用于下载并解压指定压缩包到上级目录的更新工具。它旨在简化应用程序的自动更新流程。
 
