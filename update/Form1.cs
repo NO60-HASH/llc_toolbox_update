@@ -191,7 +191,11 @@ namespace update
                 {
                     Unarchive(temp_path,box_path);
                     MessageBox.Show("更新完成");
-                    Process.Start(Path.Combine(box_path, "LLC_MOD_Toolbox.exe"));
+                    box_path = Path.Combine(box_path, "LLC_MOD_Toolbox.exe");
+                    if (File.Exists(box_path))
+                    {
+                        Process.Start(box_path);
+                    }
                 }
                 else
                 {
