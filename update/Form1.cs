@@ -13,9 +13,8 @@ namespace update
 {
     public partial class Form1 : Form
     {
-
-        private static int installPhase = 0;
-        private float progressPercentage = 0;
+        private bool useGithub;
+        private string temp_path = Path.Combine(Path.GetTempPath(), "LLC_Toolbox_temp");
         public Form1()
         {
             InitializeComponent();
@@ -25,6 +24,13 @@ namespace update
             InitializeComponent();
             useGithub = args.Any(u=>u == "-github");
         }
+        /// <summary>
+        /// 下载文件
+        /// </summary>
+        /// <param name="fileUrl">下载地址</param>
+        /// <param name="savePath">保存地址</param>
+        /// <param name="statusLabel">用于显示进度的label</param>
+        /// <param name="progressBar">用于显示进度的progressBar</param>
         private async Task DownloadFileAsync(string fileUrl,string savePath,Label statusLabel, ProgressBar progressBar)
         {
             // 确保UI更新安全
@@ -125,7 +131,6 @@ namespace update
                 Console.WriteLine($"发生错误: {ex.Message}");
             }
         }
-
         /// <summary>
         /// 获取该网址的文本，通常用于API。
         /// </summary>
@@ -146,15 +151,9 @@ namespace update
                 return string.Empty;
             }
         }
-        bool useGithub = false;
-        string temp_path;
-        string box_path;
-        string hash;
         private async void Form1_Load(object sender, EventArgs e)
         {
-            box_path = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory.Trim('\\')).FullName;
-            //获取temp文件夹  
-            temp_path = Path.Combine(Path.GetTempPath(), "LLC_Toolbox_temp");
+            //获取temp文件夹
             if (!Directory.Exists(temp_path))
             {
                 Directory.CreateDirectory(temp_path);
@@ -183,18 +182,33 @@ namespace update
                 }
                 //下载文件
                 await DownloadFileAsync(url, temp_path,label1,progressBar);
+
                 //获取软件hash
+                string hash = "";
                 string hash_result = await GetURLText("https://api.zeroasso.top/v2/hash/get_hash");
-                hash = JsonObject.Parse(hash_result)["nox_hash"].ToString();
+                JsonNode? hashNode = JsonNode.Parse(hash_result);
+                if (hashNode is JsonObject hashResult)
+                {
+                    hash = hashResult["box_hash"]?.ToString() ?? string.Empty;
+                }
+                else
+                {
+                    throw new Exception("无法解析 JSON 数据");
+                }
 
                 if (CalculateSHA256(temp_path) == hash)
                 {
-                    Unarchive(temp_path,box_path);
+                    Unarchive(temp_path, @"..\");
                     MessageBox.Show("更新完成");
-                    box_path = Path.Combine(box_path, "LLC_MOD_Toolbox.exe");
-                    if (File.Exists(box_path))
+
+                    if (File.Exists(@"..\LLC_MOD_Toolbox.exe"))
                     {
-                        Process.Start(box_path);
+                        var startInfo = new ProcessStartInfo
+                        {
+                            FileName = @"..\LLC_MOD_Toolbox.exe",
+                            WorkingDirectory = @"..\"
+                        };
+                        Process.Start(startInfo);
                     }
                 }
                 else
@@ -208,6 +222,7 @@ namespace update
             }
             finally
             {
+                //清除下载缓存，关闭更新器
                 File.Delete(temp_path);
                 Application.Exit();
             }
